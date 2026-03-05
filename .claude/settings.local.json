@@ -3,7 +3,14 @@
     "allow": [
       "Bash(go build:*)",
       "Bash(go run:*)",
-      "Bash(go doc:*)"
+      "Bash(go doc:*)",
+      "Bash(go get:*)",
+      "Bash(go clean:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(timeout:*)",
+      "Bash(true)",
+      "Bash(mv:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

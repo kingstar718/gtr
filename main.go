@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/kingstar718/gtr/cmd/todo"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,7 @@ func main() {
 	rootCmd.AddCommand(NewCoordinateCommand())
 	rootCmd.AddCommand(NewHttpCommand())
 	rootCmd.AddCommand(NewTextCommand())
+	rootCmd.AddCommand(todo.NewTodoCommand())
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
