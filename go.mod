@@ -1,4 +1,4 @@
-module gtr
+module github.com/kingstar718/gtr
 
 go 1.23
 
