@@ -14,6 +14,7 @@ func main() {
 	rootCmd.AddCommand(NewTimeCommand())
 	rootCmd.AddCommand(NewCoordinateCommand())
 	rootCmd.AddCommand(NewHttpCommand())
+	rootCmd.AddCommand(NewTextCommand())
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
