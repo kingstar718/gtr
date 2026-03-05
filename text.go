@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewTextCommand creates a new text encoding/decoding command for the CLI.
 func NewTextCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "text",
@@ -59,6 +60,7 @@ func NewTextCommand() *cobra.Command {
 	return cmd
 }
 
+// handleBase64 handles base64 encoding and decoding operations.
 func handleBase64(operation, text string) error {
 	switch operation {
 	case "encode":
@@ -87,6 +89,7 @@ func handleBase64(operation, text string) error {
 	}
 }
 
+// handleURL handles URL encoding and decoding operations.
 func handleURL(operation, text string) error {
 	switch operation {
 	case "encode":
@@ -115,6 +118,7 @@ func handleURL(operation, text string) error {
 	}
 }
 
+// handleMD5 handles MD5 hashing operations.
 func handleMD5(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("text is required for md5")

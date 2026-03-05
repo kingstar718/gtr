@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// TimeStruct holds the result of time conversion operations.
 type TimeStruct struct {
 	OriginArg   string
 	ParseTime   time.Time
@@ -16,7 +17,7 @@ type TimeStruct struct {
 	TimeFormat2 string
 }
 
-// NewTimeCommand 创建一个新的时间转换命令
+// NewTimeCommand creates a new time conversion command for the CLI.
 func NewTimeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "time",

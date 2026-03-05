@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewHttpCommand creates a new HTTP request command for the CLI.
 func NewHttpCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "http",

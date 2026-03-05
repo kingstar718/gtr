@@ -8,8 +8,9 @@ import (
 	"strings"
 )
 
-// GPSUtil is a utility class for GPS calculations.
-// 小写方法是私有方法，大写方法是公有方法 可根据需要调整
+// GPSUtil provides utilities for GPS coordinate system conversions.
+// It supports conversions between WGS84, GCJ02 (Chinese coordinate system),
+// and BD09 (Baidu coordinate system).
 type GPSUtil struct {
 }
 
@@ -63,10 +64,7 @@ func (receiver *GPSUtil) transform(lat, lng float64) []float64 {
 	return []float64{mgLat, mglng}
 }
 
-// WGS84_To_Gcj02 84 to 火星坐标系 (GCJ-02) World Geodetic System ==> Mars Geodetic System
-// @param lat
-// @param lng
-// @return
+// WGS84_To_Gcj02 converts WGS84 coordinates to GCJ02 (Chinese coordinate system).
 func (receiver *GPSUtil) WGS84_To_Gcj02(lat, lng float64) []float64 {
 	if receiver.outOfChina(lat, lng) {
 		return []float64{lat, lng}
@@ -84,11 +82,7 @@ func (receiver *GPSUtil) WGS84_To_Gcj02(lat, lng float64) []float64 {
 	return []float64{mgLat, mglng}
 }
 
-// GCJ02_To_WGS84
-// 火星坐标系 (GCJ-02) to WGS84
-// @param lng
-// @param lat
-// @return
+// GCJ02_To_WGS84 converts GCJ02 coordinates to WGS84.
 func (receiver *GPSUtil) GCJ02_To_WGS84(lat, lng float64) []float64 {
 	gps := receiver.transform(lat, lng)
 	lngtitude := lng*2 - gps[1]
@@ -96,12 +90,7 @@ func (receiver *GPSUtil) GCJ02_To_WGS84(lat, lng float64) []float64 {
 	return []float64{latitude, lngtitude}
 }
 
-/**
- * 火星坐标系 (GCJ-02) 与百度坐标系 (BD-09) 的转换算法 将 GCJ-02 坐标转换成 BD-09 坐标
- *
- * @param lat
- * @param lng
- */
+// gcj02_To_Bd09 converts GCJ02 coordinates to BD09 (Baidu coordinate system).
 func (receiver *GPSUtil) gcj02_To_Bd09(lat, lng float64) []float64 {
 	x := lng
 	y := lat
@@ -113,10 +102,7 @@ func (receiver *GPSUtil) gcj02_To_Bd09(lat, lng float64) []float64 {
 	return gps
 }
 
-/**
- * * 火星坐标系 (GCJ-02) 与百度坐标系 (BD-09) 的转换算法 * * 将 BD-09 坐标转换成GCJ-02 坐标 * * @param
- * bd_lat * @param bd_lng * @return
- */
+// bd09_To_Gcj02 converts BD09 coordinates to GCJ02.
 func (receiver *GPSUtil) bd09_To_Gcj02(lat, lng float64) []float64 {
 	x := lng - 0.0065
 	y := lat - 0.006
@@ -128,13 +114,14 @@ func (receiver *GPSUtil) bd09_To_Gcj02(lat, lng float64) []float64 {
 	return gps
 }
 
-// 将WGS84转为bd09
+// WGS84_To_bd09 converts WGS84 coordinates to BD09.
 func (receiver *GPSUtil) WGS84_To_bd09(lat, lng float64) []float64 {
 	gcj02 := receiver.WGS84_To_Gcj02(lat, lng)
 	bd09 := receiver.gcj02_To_Bd09(gcj02[0], gcj02[1])
 	return bd09
 }
 
+// bd09_To_WGS84 converts BD09 coordinates to WGS84.
 func (receiver *GPSUtil) bd09_To_WGS84(lat, lng float64) []float64 {
 	gcj02 := receiver.bd09_To_Gcj02(lat, lng)
 	WGS84 := receiver.GCJ02_To_WGS84(gcj02[0], gcj02[1])
@@ -144,10 +131,7 @@ func (receiver *GPSUtil) bd09_To_WGS84(lat, lng float64) []float64 {
 	return WGS84
 }
 
-/**保留小数点后六位
- * @param num
- * @return
- */
+// retain6 rounds a float64 number to 6 decimal places.
 func (receiver *GPSUtil) retain6(num float64) float64 {
 	value, _ := strconv.ParseFloat(strconv.FormatFloat(num, 'f', 6, 64), 64)
 	return value
@@ -177,6 +161,7 @@ var coordinateMap = map[string]string{
 	coordinateGg:    coordinateWgs84,
 }
 
+// NewCoordinateCommand creates a new coordinate conversion command for the CLI.
 func NewCoordinateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "coordinate",
