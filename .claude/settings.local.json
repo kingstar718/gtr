@@ -10,7 +10,10 @@
       "Bash(timeout:*)",
       "Bash(true)",
       "Bash(mv:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(.gtr.exe version:*)",
+      "Bash(./gtr.exe version:*)",
+      "Bash(./gtr.exe:*)"
     ],
     "deny": []
   }

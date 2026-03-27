@@ -141,45 +141,11 @@ gtr h https://example.com  # Same as: gtr http https://example.com
 
 ---
 
-### 5. Todo Manager
-
-Interactive task management with TUI (Text User Interface) and command-line modes.
-
-**TUI Mode:**
-```bash
-gtr todo              # Launch interactive TUI with table view
-```
-
-**Command-line Mode:**
-```bash
-gtr todo add "Task title" --priority high --due 2025-03-10
-gtr todo list [--status pending] [--priority high]
-gtr todo delete <task-id>
-```
-
-**TUI Features:**
-- Table view with: Title, Priority, Status, Due Date
-- Navigation: (j/k) or (↑/↓) to move cursor
-- (e) - Edit task: cycle priority with (p), cycle status with (c)
-- (d) - Delete task
-- Filters: (0)clear (1)pending (2)inprogress (3)done (h)igh (m)edium (n)low
-- (?) - Help
-- (q) - Quit
-
-**Task States:**
-- Pending → InProgress → Done (cycle with 'c' in TUI)
-
-**Priorities:**
-- High, Medium, Low (cycle with 'p' in TUI)
-
----
-
 ## Features
 
 ✅ Multiple coordinate system conversions  
 ✅ HTTP request testing with detailed response info  
 ✅ Flexible timestamp and date format conversion  
 ✅ Base64, URL, and MD5 text transformations  
-✅ Interactive Todo manager with TUI  
 ✅ Command aliases for quick access  
 ✅ Clean, formatted output

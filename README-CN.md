@@ -123,39 +123,6 @@ gtr text md5 "password"
 
 ---
 
-### 5. Todo任务管理器
-
-支持TUI（文本用户界面）和命令行两种模式的交互式任务管理。
-
-**TUI模式：**
-```bash
-gtr todo              # 启动交互式TUI（表格视图）
-```
-
-**命令行模式：**
-```bash
-gtr todo add "任务标题" --priority high --due 2025-03-10
-gtr todo list [--status pending] [--priority high]
-gtr todo delete <task-id>
-```
-
-**TUI功能特性：**
-- 表格视图显示：标题、优先级、状态、截止日期
-- 导航：(j/k) 或 (↑/↓) 移动光标
-- (e) - 编辑任务：用 (p) 切换优先级，(c) 切换状态
-- (d) - 删除任务
-- 过滤：(0)清空 (1)待办 (2)进行中 (3)已完成 (h)高 (m)中 (n)低
-- (?) - 帮助
-- (q) - 退出
-
-**任务状态：**
-- 待办 → 进行中 → 已完成（在TUI中用 'c' 循环切换）
-
-**优先级：**
-- 高、中、低（在TUI中用 'p' 循环切换）
-
----
-
 ## 命令别名
 
 所有命令都支持多个别名，方便快速使用：
@@ -164,7 +131,6 @@ gtr todo delete <task-id>
 - `coordinate` (坐标转换)：`coor`, `-coor`, `--coor`, `c`, `-c`, `--c`
 - `http` (HTTP请求)：`-http`, `--http`, `h`, `-h`, `--h`
 - `text` (文本编解码)：`t`, `-t`, `--t`, `-text`, `--text`
-- `todo` (任务管理)：`t`, `-t`, `--t`, `-todo`, `--todo`
 
 **使用例子：**
 ```bash
@@ -181,7 +147,6 @@ gtr h https://example.com           # 等同于：gtr http https://example.com
 ✅ HTTP请求测试，显示详细响应信息  
 ✅ 灵活的时间戳和日期格式转换  
 ✅ Base64、URL和MD5文本转换  
-✅ 交互式Todo任务管理（支持TUI模式）  
 ✅ 命令别名，快速访问  
 ✅ 清晰格式化的输出结果
 
