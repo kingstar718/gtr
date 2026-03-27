@@ -85,7 +85,25 @@ gtr time 20240923103151
 
 ### 4. Text Encode/Decode
 
-Encode and decode text using Base64, URL encoding, and generate MD5 hashes.
+Encode and decode text using Base64, URL encoding, and generate MD5 hashes. You can either perform individual operations or convert all formats at once with a single command.
+
+#### Quick Convert (All Formats)
+```bash
+gtr text "<text>"
+```
+
+This will display all conversions:
+- Base64 encode/decode
+- URL encode/decode  
+- MD5 hash
+- Failed conversions are marked with ✗
+
+**Example:**
+```bash
+gtr text "hello world"
+```
+
+#### Individual Operations
 
 #### Base64 Encode/Decode
 ```bash
