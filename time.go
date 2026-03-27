@@ -1,23 +1,131 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
 	"strconv"
+	"strings"
+	"text/tabwriter"
 	"time"
 )
 
-// TimeStruct holds the result of time conversion operations.
-type TimeStruct struct {
-	OriginArg   string
-	ParseTime   time.Time
-	Timestamp10 int64
-	Timestamp13 int64
-	TimeFormat1 string
-	TimeFormat2 string
+func isTimeFormat(input string) bool {
+	trimmed := strings.TrimSpace(input)
+	if trimmed != input {
+		return false
+	}
+
+	length := len(input)
+
+	if length == 10 || length == 13 {
+		if _, err := strconv.ParseInt(input, 10, 64); err == nil {
+			return true
+		}
+	}
+
+	timeFormats := []string{
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04",
+		"2006-01-02",
+		"20060102150405",
+		"20060102150400",
+		"20060102",
+		"2006/01/02 15:04:05",
+		"2006/01/02 15:04",
+		"2006/01/02",
+		"01/02/2006 15:04:05",
+		"01/02/2006 15:04",
+		"01/02/2006",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05",
+		time.RFC3339,
+		time.RFC822,
+	}
+
+	for _, format := range timeFormats {
+		if _, err := time.Parse(format, input); err == nil {
+			return true
+		}
+	}
+
+	return false
 }
 
-// NewTimeCommand creates a new time conversion command for the CLI.
+func handleTimeConvert(input string) error {
+	originArg := strings.TrimSpace(input)
+
+	timeFormats := []string{
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04",
+		"2006-01-02",
+		"20060102150405",
+		"20060102150400",
+		"20060102",
+		"2006/01/02 15:04:05",
+		"2006/01/02 15:04",
+		"2006/01/02",
+		"01/02/2006 15:04:05",
+		"01/02/2006 15:04",
+		"01/02/2006",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05",
+		time.RFC3339,
+		time.RFC822,
+	}
+
+	var parseTime time.Time
+	parsed := false
+	l := len(originArg)
+
+	if !parsed && l == 10 {
+		if parseInt, err := strconv.ParseInt(originArg, 10, 64); err == nil {
+			parseTime = time.Unix(parseInt, 0)
+			parsed = true
+		}
+	}
+
+	if !parsed && l == 13 {
+		if parseInt, err := strconv.ParseInt(originArg, 10, 64); err == nil {
+			parseTime = time.UnixMilli(parseInt)
+			parsed = true
+		}
+	}
+
+	if !parsed {
+		for _, format := range timeFormats {
+			if t, err := time.Parse(format, originArg); err == nil {
+				parseTime = t
+				parsed = true
+				break
+			}
+		}
+	}
+
+	if !parsed {
+		parseTime = time.Now()
+	}
+
+	timestamp13 := parseTime.UnixNano() / int64(time.Millisecond)
+	timestamp10 := parseTime.Unix()
+
+	var buf bytes.Buffer
+	w := tabwriter.NewWriter(&buf, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "                input\t:\t%s\n", originArg)
+	fmt.Fprintf(w, "          timestamp10\t:\t%d\n", timestamp10)
+	fmt.Fprintf(w, "          timestamp13\t:\t%d\n", timestamp13)
+	fmt.Fprintf(w, "  2006-01-02 15:04:05\t:\t%s\n", parseTime.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(w, "       20060102150405\t:\t%s\n", parseTime.Format("20060102150405"))
+	fmt.Fprintf(w, "  2006/01/02 15:04:05\t:\t%s\n", parseTime.Format("2006/01/02 15:04:05"))
+	fmt.Fprintf(w, "              RFC3339\t:\t%s\n", parseTime.Format(time.RFC3339))
+
+	w.Flush()
+	fmt.Print(buf.String())
+
+	return nil
+}
+
 func NewTimeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "time",
@@ -35,7 +143,6 @@ func NewTimeCommand() *cobra.Command {
 			"|   3. 2024-09-23 10:31:51    |\n" +
 			"|   4. 20240923103151         |\n" +
 			"-------------------------------\n",
-		//Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var originArg string
 			if len(args) == 1 {
@@ -44,50 +151,9 @@ func NewTimeCommand() *cobra.Command {
 				originArg = args[0] + " " + args[1]
 			}
 
-			timeFormat1 := "2006-01-02 15:04:05"
-			timeFormat2 := "20060102150405"
-			timeFormat1Len := len(timeFormat1)
-			timeFormat2Len := len(timeFormat2)
-
-			timeStruct := TimeStruct{}
-			timeStruct.OriginArg = originArg
-
-			l := len(originArg)
-			// 统一转time.Time
-			var parseTime time.Time
-			if l == 10 {
-				// 10位时间戳
-				parseInt, _ := strconv.ParseInt(originArg, 10, 64)
-				parseTime = time.Unix(parseInt, 0)
-			} else if l == 13 {
-				// 13位时间戳
-				parseInt, _ := strconv.ParseInt(originArg, 10, 64)
-				parseTime = time.UnixMilli(parseInt)
-			} else if l == timeFormat1Len {
-				// 格式为：20060102150405
-				parseTime, _ = time.Parse(timeFormat1, originArg)
-			} else if l == timeFormat2Len {
-				// 格式为：2006-01-02 15:04:05
-				parseTime, _ = time.Parse(timeFormat2, originArg)
-			} else {
-				parseTime = time.Now()
-			}
-
-			timeStruct.ParseTime = parseTime
-
-			timeStruct.TimeFormat1 = parseTime.Format(timeFormat1)
-			timeStruct.TimeFormat2 = parseTime.Format(timeFormat2)
-			timeStruct.Timestamp13 = parseTime.UnixNano() / int64(time.Millisecond)
-			timeStruct.Timestamp10 = parseTime.Unix()
-
-			fmt.Printf("imput      : %s\n", timeStruct.OriginArg)
-			fmt.Printf("timestamp1 : %d\n", timeStruct.Timestamp10)
-			fmt.Printf("timestamp2 : %d\n", timeStruct.Timestamp13)
-			fmt.Printf("format1    : %s\n", timeStruct.TimeFormat1)
-			fmt.Printf("format2    : %s\n", timeStruct.TimeFormat2)
-
-			return nil
+			return handleTimeConvert(originArg)
 		},
 	}
 	return cmd
 }
+

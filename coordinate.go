@@ -4,9 +4,68 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 )
+
+func isCoordinateFormat(input string) bool {
+	coordPatterns := []string{
+		`^-?\d+\.?\d*[,|]\s*-?\d+\.?\d*$`,
+		`^-?\d+\.?\d*\s+-?\d+\.?\d*$`,
+	}
+
+	for _, pattern := range coordPatterns {
+		matched, _ := regexp.MatchString(pattern, input)
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+func handleCoordinateConvert(input string) error {
+	var longitude, latitude float64
+	var originCoordinate = coordinateGcj02
+
+	parts := coordinateStringToFloat(input)
+	longitude = parts[0]
+	latitude = parts[1]
+
+	gpsUtil := GPSUtil{}
+	var bd09 []float64
+	var wgs84 []float64
+	var gcj02 []float64
+
+	if originCoordinate == coordinateGcj02 {
+		bd09 = gpsUtil.gcj02_To_Bd09(latitude, longitude)
+		wgs84 = gpsUtil.GCJ02_To_WGS84(latitude, longitude)
+		gcj02 = []float64{latitude, longitude}
+	} else if originCoordinate == coordinateWgs84 {
+		bd09 = gpsUtil.WGS84_To_bd09(latitude, longitude)
+		gcj02 = gpsUtil.WGS84_To_Gcj02(latitude, longitude)
+		wgs84 = []float64{latitude, longitude}
+	} else {
+		gcj02 = gpsUtil.bd09_To_Gcj02(latitude, longitude)
+		wgs84 = gpsUtil.bd09_To_WGS84(latitude, longitude)
+		bd09 = []float64{latitude, longitude}
+	}
+
+	fmt.Println("--------|------------------------------------")
+	fmt.Printf("input  : %v,%v\n", longitude, latitude)
+	fmt.Printf("coord  : %s\n", originCoordinate)
+	fmt.Println("--------|------------------------------------")
+	fmt.Printf("gcj02-6: %v,%v\n", gpsUtil.retain6(gcj02[1]), gpsUtil.retain6(gcj02[0]))
+	fmt.Printf("gcj02  : %v,%v\n", gcj02[1], gcj02[0])
+	fmt.Println("--------|------------------------------------")
+	fmt.Printf("wgs84-6: %v,%v\n", gpsUtil.retain6(wgs84[1]), gpsUtil.retain6(wgs84[0]))
+	fmt.Printf("wgs84  : %v,%v\n", wgs84[1], wgs84[0])
+	fmt.Println("--------|------------------------------------")
+	fmt.Printf("bd09-6 : %v,%v\n", gpsUtil.retain6(bd09[1]), gpsUtil.retain6(bd09[0]))
+	fmt.Printf("bd09   : %v,%v\n", bd09[1], bd09[0])
+	fmt.Println("--------|------------------------------------")
+	return nil
+}
 
 // GPSUtil provides utilities for GPS coordinate system conversions.
 // It supports conversions between WGS84, GCJ02 (Chinese coordinate system),

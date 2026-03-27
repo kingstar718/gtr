@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,81 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewHttpCommand creates a new HTTP request command for the CLI.
+func isHTTPURL(input string) bool {
+	return strings.HasPrefix(input, "http://") || strings.HasPrefix(input, "https://")
+}
+
+func handleHTTPRequest(input string) error {
+	input = strings.TrimSpace(input)
+	input = strings.Trim(input, `"'`)
+
+	var url string
+	var data string
+
+	var urlEnd = strings.Index(input, " ")
+	if urlEnd == -1 {
+		url = input
+	} else {
+		url = input[:urlEnd]
+		data = strings.TrimSpace(input[urlEnd+1:])
+		data = strings.Trim(data, `"'`)
+	}
+
+	method := "GET"
+	var body io.Reader
+
+	if data != "" {
+		method = "POST"
+		var jsonMap map[string]interface{}
+		err := json.Unmarshal([]byte(data), &jsonMap)
+		if err != nil {
+			return fmt.Errorf("invalid JSON data: %v", err)
+		}
+		jsonData, _ := json.Marshal(jsonMap)
+		body = bytes.NewBuffer(jsonData)
+	}
+
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return err
+	}
+	if method == "POST" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	startTime := time.Now()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	endTime := time.Now()
+	duration := endTime.Sub(startTime).Milliseconds()
+
+	fmt.Println("")
+	fmt.Printf("Request Url       ：%s\n", url)
+	if method == "POST" {
+		fmt.Printf("Request Post json : %s\n", data)
+	}
+	fmt.Printf("Request Method    ：%s\n", method)
+
+	header := resp.Header
+	for key, value := range header {
+		fmt.Printf("Response Header %s: %s\n", key, strings.Join(value, ","))
+	}
+	fmt.Printf("Response status   ：%s\n", resp.Status)
+	fmt.Printf("Response Time(ms) ：%dms\n", duration)
+
+	bodyData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Response Body:\n%s\n", string(bodyData))
+	return nil
+}
+
 func NewHttpCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "http",
@@ -28,79 +101,14 @@ func NewHttpCommand() *cobra.Command {
 			"|   1. 'https://a.com'             |\n" +
 			"|   2. 'https://a.com' '{\"a\":1}'   |\n" +
 			"------------------------------------\n",
-		//Args:    cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			var argLen = len(args)
-			args0 := args[0]
-			method := "GET"
-			var body io.Reader
-			var data string
-			url := args0
-			if argLen == 2 {
-				method = "POST"
-				data = args[1]
-
-				// 接收的字符串双引号都没有了，需要处理
-				data = strings.ReplaceAll(data, "{", `{"`)
-				data = strings.ReplaceAll(data, "}", `"}`)
-				data = strings.ReplaceAll(data, ":", `":"`)
-				data = strings.ReplaceAll(data, ",", `","`)
-
-				var jsonMap map[string]interface{}
-				err := json.Unmarshal([]byte(data), &jsonMap)
-				if err != nil {
-					log.Fatal(err)
-				}
-				jsonData, _ := json.Marshal(jsonMap)
-				body = bytes.NewBuffer(jsonData)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return fmt.Errorf("URL is required")
 			}
-
-			req, err := http.NewRequest(method, url, body)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if method == "POST" {
-				req.Header.Set("Content-Type", "application/json")
-			}
-
-			startTime := time.Now()
-			client := &http.Client{}
-			resp, err := client.Do(req)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer resp.Body.Close()
-			endTime := time.Now()
-			duration := endTime.Sub(startTime).Milliseconds()
-
-			fmt.Println("")
-			fmt.Printf("Request Url       ：%s\n", url)
-			if method == "POST" {
-				fmt.Printf("Request Post json : %s\n", data)
-			}
-
-			index := 0
-			for name, values := range resp.Header {
-				for _, value := range values {
-					if index == 0 {
-						fmt.Printf("Response Headers  : %s: %s\n", name, value)
-					} else {
-						fmt.Printf("                    %s: %s\n", name, value)
-					}
-				}
-				index++
-			}
-			fmt.Printf("Response Start    : %s\n", startTime.Format("2006-01-02 15:04:05.000"))
-			fmt.Printf("Response End      : %s\n", endTime.Format("2006-01-02 15:04:05.000"))
-			fmt.Printf("Response Duration : %d ms\n", duration)
-			fmt.Printf("Response Status   : %d\n", resp.StatusCode)
-			respBody, err := io.ReadAll(resp.Body)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("Response Body     : %s\n", string(respBody))
-			fmt.Println("")
+			input := strings.Join(args, " ")
+			return handleHTTPRequest(input)
 		},
 	}
 	return cmd
 }
+

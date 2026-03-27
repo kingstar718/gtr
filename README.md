@@ -10,7 +10,20 @@ gtr is a go terminal tools for quick conversions and transformations in the CLI.
 go build -o gtr
 ```
 
-## Usage
+## Universal Usage
+
+Simply input any text and gtr will auto-detect what you're trying to do:
+
+```bash
+gtr 113.901495,22.499501       # Detects as coordinate → converts between WGS84/GCJ02/BD09
+gtr 1727087511                 # Detects as timestamp → shows all date/time formats
+gtr https://api.example.com    # Detects as HTTP → sends GET request
+gtr "hello world"              # Detects as text → shows base64/url/md5
+```
+
+---
+
+## Usage by Type
 
 ### 1. Coordinate Convert
 
