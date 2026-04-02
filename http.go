@@ -55,7 +55,9 @@ func handleHTTPRequest(input string) error {
 	}
 
 	startTime := time.Now()
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

@@ -28,7 +28,10 @@ func handleCoordinateConvert(input string) error {
 	var longitude, latitude float64
 	var originCoordinate = coordinateGcj02
 
-	parts := coordinateStringToFloat(input)
+	parts, err := coordinateStringToFloat(input)
+	if err != nil {
+		return err
+	}
 	longitude = parts[0]
 	latitude = parts[1]
 
@@ -244,32 +247,46 @@ func NewCoordinateCommand() *cobra.Command {
 			var latitude float64
 			originCoordinate := coordinateGcj02
 			var argLen = len(args)
+
 			// 1. 经度,纬度
 			args0 := args[0]
+
 			if argLen == 1 {
-				float := coordinateStringToFloat(args0)
-				longitude = float[0]
-				latitude = float[1]
+				floats, err := coordinateStringToFloat(args0)
+				if err != nil {
+					return err
+				}
+				longitude = floats[0]
+				latitude = floats[1]
 			} else if argLen == 2 {
 				value, existed := coordinateMap[args0]
 				// 3. 坐标系 经度,纬度
 				if existed {
 					originCoordinate = value
-					float := coordinateStringToFloat(args[1])
-					longitude = float[0]
-					latitude = float[1]
+					floats, err := coordinateStringToFloat(args[1])
+					if err != nil {
+						return err
+					}
+					longitude = floats[0]
+					latitude = floats[1]
 				} else {
 					// 2. 经度 纬度
-					float := coordinateStringToFloat(args0 + "|" + args[1])
-					longitude = float[0]
-					latitude = float[1]
+					floats, err := coordinateStringToFloat(args0 + "|" + args[1])
+					if err != nil {
+						return err
+					}
+					longitude = floats[0]
+					latitude = floats[1]
 				}
 				// 4. 坐标系 经度 纬度
 			} else if argLen == 3 {
 				value, existed := coordinateMap[args0]
-				float := coordinateStringToFloat(args[1] + "|" + args[2])
-				longitude = float[0]
-				latitude = float[1]
+				floats, err := coordinateStringToFloat(args[1] + "|" + args[2])
+				if err != nil {
+					return err
+				}
+				longitude = floats[0]
+				latitude = floats[1]
 				if existed {
 					originCoordinate = value
 				}
@@ -314,18 +331,42 @@ func NewCoordinateCommand() *cobra.Command {
 	return cmd
 }
 
-func coordinateStringToFloat(s string) []float64 {
+func coordinateStringToFloat(s string) ([]float64, error) {
 	var longitude float64
 	var latitude float64
+	var err error
+
 	if strings.Contains(s, "|") {
 		split := strings.Split(s, "|")
-		longitude, _ = strconv.ParseFloat(split[0], 64)
-		latitude, _ = strconv.ParseFloat(split[1], 64)
+		if len(split) != 2 {
+			return nil, fmt.Errorf("invalid coordinate format: expected 2 parts separated by |, got %d", len(split))
+		}
+		longitude, err = strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid longitude: %w", err)
+		}
+		latitude, err = strconv.ParseFloat(strings.TrimSpace(split[1]), 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid latitude: %w", err)
+		}
+		return []float64{longitude, latitude}, nil
 	}
+
 	if strings.Contains(s, ",") {
 		split := strings.Split(s, ",")
-		longitude, _ = strconv.ParseFloat(split[0], 64)
-		latitude, _ = strconv.ParseFloat(split[1], 64)
+		if len(split) != 2 {
+			return nil, fmt.Errorf("invalid coordinate format: expected 2 parts separated by comma, got %d", len(split))
+		}
+		longitude, err = strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid longitude: %w", err)
+		}
+		latitude, err = strconv.ParseFloat(strings.TrimSpace(split[1]), 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid latitude: %w", err)
+		}
+		return []float64{longitude, latitude}, nil
 	}
-	return []float64{longitude, latitude}
+
+	return nil, fmt.Errorf("invalid coordinate format: must contain comma or pipe separator")
 }

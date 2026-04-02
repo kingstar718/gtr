@@ -14,7 +14,15 @@
       "Bash(.gtr.exe version:*)",
       "Bash(./gtr.exe version:*)",
       "Bash(./gtr.exe:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(go test:*)",
+      "Bash(./gtr --version)",
+      "Bash(./gtr version:*)",
+      "Bash(__NEW_LINE_ae419a589fc43170__ echo:*)",
+      "Bash(./gtr coordinate:*)",
+      "Bash(./gtr time:*)",
+      "Bash(./gtr text:*)"
     ],
     "deny": []
   }
